@@ -9,7 +9,7 @@ class WorkerNavigationDrawer extends StatelessWidget {
   final String? userName;
   final String? workerSkill; // Add a parameter for the worker's skill
 
-  const WorkerNavigationDrawer({Key? key, this.userName, this.workerSkill}) : super(key: key);
+  const WorkerNavigationDrawer({super.key, this.userName, this.workerSkill});
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +81,7 @@ class WorkerNavigationDrawer extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();

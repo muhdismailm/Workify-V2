@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ClientLogoutPage extends StatelessWidget {
-  const ClientLogoutPage({Key? key}) : super(key: key);
+  const ClientLogoutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
 
     return Scaffold(
       appBar: AppBar(
@@ -33,7 +33,7 @@ class ClientLogoutPage extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () async {
-                    await _auth.signOut(); // Sign out the user
+                    await auth.signOut(); // Sign out the user
                     Navigator.of(context).pushReplacementNamed('/client_login'); // Navigate to the client login screen
                   },
                   style: ElevatedButton.styleFrom(

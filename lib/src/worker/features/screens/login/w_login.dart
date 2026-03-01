@@ -6,7 +6,7 @@ import 'package:login_1/src/worker/features/screens/widgets/w_appbar.dart';
 import 'package:login_1/src/worker/features/screens/pages/HomeScreen.dart';
 
 class WLogin extends StatefulWidget {
-  const WLogin({Key? key}) : super(key: key);
+  const WLogin({super.key});
 
   @override
   _LoginFormState createState() => _LoginFormState();

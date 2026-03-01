@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UpdateProfile extends StatefulWidget {
-  const UpdateProfile({Key? key}) : super(key: key);
+  const UpdateProfile({super.key});
 
   @override
   State<UpdateProfile> createState() => _UpdateProfileState();

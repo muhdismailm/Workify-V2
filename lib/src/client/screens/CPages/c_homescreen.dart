@@ -6,7 +6,7 @@ import 'package:login_1/src/client/screens/CPages/c_navigation.dart'; // Import 
 import 'package:login_1/src/client/screens/CPages/C_worker_list.dart'; // Import the WorkerList widget
 
 class ClientHomePage extends StatefulWidget {
-  const ClientHomePage({Key? key}) : super(key: key);
+  const ClientHomePage({super.key});
 
   @override
   State<ClientHomePage> createState() => _ClientHomePageState();
@@ -195,7 +195,7 @@ class _ClientHomePageState extends State<ClientHomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: DropdownButtonFormField<String>(
-                value: selectedSkill,
+                initialValue: selectedSkill,
                 decoration: InputDecoration(
                   labelText: 'Select work',
                   border: OutlineInputBorder(

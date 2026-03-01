@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'c_login.dart';
 
 class CSignUpForm extends StatefulWidget {
-  const CSignUpForm({Key? key}) : super(key: key);
+  const CSignUpForm({super.key});
 
   @override
   _SignUpFormState createState() => _SignUpFormState();

@@ -6,7 +6,7 @@ import 'package:login_1/src/client/screens/login/c_signup.dart';
 import 'package:login_1/src/client/widgets/custom_appbar.dart';
 
 class CLogin extends StatefulWidget {
-  const CLogin({Key? key}) : super(key: key);
+  const CLogin({super.key});
 
   @override
   _LoginFormState createState() => _LoginFormState();

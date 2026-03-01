@@ -7,7 +7,7 @@ import 'w_login.dart'; // Login form
 import 'package:login_1/src/worker/features/screens/widgets/w_appbar.dart';
 
 class WSignUpForm extends StatefulWidget {
-  const WSignUpForm({Key? key}) : super(key: key);
+  const WSignUpForm({super.key});
 
   @override
   _SignUpFormState createState() => _SignUpFormState();

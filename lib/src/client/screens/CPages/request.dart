@@ -3,7 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:login_1/src/client/screens/CPages/c_homescreen.dart'; // Import the home screen
 
 class BookedServicesPage extends StatefulWidget {
-  const BookedServicesPage({Key? key}) : super(key: key);
+  const BookedServicesPage({super.key});
 
   @override
   State<BookedServicesPage> createState() => _BookedServicesPageState();
@@ -204,7 +204,7 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
               const Text('Please select a rating:'),
               const SizedBox(height: 10),
               DropdownButtonFormField<int>(
-                value: selectedRating,
+                initialValue: selectedRating,
                 decoration: const InputDecoration(
                   labelText: 'Rating',
                   border: OutlineInputBorder(),

@@ -4,7 +4,7 @@ import 'package:login_1/src/worker/features/screens/pages/HomeScreen.dart';
 import 'package:login_1/src/worker/features/screens/pages/w_navigation.dart' hide HomePage;
 
 class WorkerRequestsPage extends StatefulWidget {
-  const WorkerRequestsPage({Key? key}) : super(key: key);
+  const WorkerRequestsPage({super.key});
 
   @override
   State<WorkerRequestsPage> createState() => _WorkerRequestsPageState();

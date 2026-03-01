@@ -5,7 +5,7 @@ import 'package:login_1/src/client/screens/login/c_logout.dart'; // Import the c
 class ClientNavigationDrawer extends StatelessWidget {
   final String? userName;
 
-  const ClientNavigationDrawer({Key? key, this.userName}) : super(key: key);
+  const ClientNavigationDrawer({super.key, this.userName});
 
   @override
   Widget build(BuildContext context) {

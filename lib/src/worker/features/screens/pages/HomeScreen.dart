@@ -7,7 +7,7 @@ import 'package:login_1/src/worker/features/screens/pages/w_requests.dart'; // I
 import 'package:firebase_database/firebase_database.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _showCalendar = false; // Track whether to show the calendar
-  bool _showRatings = false; // Track whether to show ratings
+  final bool _showRatings = false; // Track whether to show ratings
 
   @override
   void initState() {
@@ -292,7 +292,7 @@ class _HomePageState extends State<HomePage> {
 
               // Show Ratings if _showRatings is true
               if (_showRatings)
-                Container(
+                SizedBox(
                   height: 300, // Set a fixed height for the ratings list
                   child: StreamBuilder<QuerySnapshot>(
                     stream: _firestore.collection('ratings').snapshots(),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class WAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
 
-  const WAppbar({Key? key, required this.title}) : super(key: key);
+  const WAppbar({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {

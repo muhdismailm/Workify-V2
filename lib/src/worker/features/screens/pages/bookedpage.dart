@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Bookedpage extends StatelessWidget {
-  const Bookedpage({Key? key}) : super(key: key);
+  const Bookedpage({super.key});
 
   @override
   Widget build(BuildContext context) {

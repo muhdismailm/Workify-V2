@@ -10,12 +10,12 @@ class WorkerList extends StatelessWidget {
   final Function(BuildContext, Map<String, dynamic>) onBookWorker;
 
   const WorkerList({
-    Key? key,
+    super.key,
     required this.isLoading,
     required this.selectedSkill,
     required this.workers,
     required this.onBookWorker,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
