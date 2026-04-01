@@ -17,29 +17,17 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -53,12 +41,52 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA_Qw44a9Nv9TlrrKH0ATk-kILQR8r1FXE',
-    appId: '1:472290102578:android:bf83b9401f0e581e2d5b2b',
-    messagingSenderId: '472290102578',
-    projectId: 'workify-22c49',
-    databaseURL: 'https://workify-22c49-default-rtdb.firebaseio.com',
-    storageBucket: 'workify-22c49.firebasestorage.app',
+    apiKey: 'AIzaSyD1I3DkusftDwv_9Wa1kOb69bVYimMxDU4',
+    appId: '1:788288712446:android:28755f2d9c01af1420ffaf',
+    messagingSenderId: '788288712446',
+    projectId: 'workifyv2',
+    databaseURL: 'https://workifyv2-default-rtdb.firebaseio.com',
+    storageBucket: 'workifyv2.firebasestorage.app',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCGGea6ilGbWsnyvZS81NVCcKtmqVRmDmA',
+    appId: '1:788288712446:web:20328ca2af3a041920ffaf',
+    messagingSenderId: '788288712446',
+    projectId: 'workifyv2',
+    authDomain: 'workifyv2.firebaseapp.com',
+    databaseURL: 'https://workifyv2-default-rtdb.firebaseio.com',
+    storageBucket: 'workifyv2.firebasestorage.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyARdfd1x8Be_cGW4viYOdlQcQHyUodNS0E',
+    appId: '1:788288712446:ios:0fe6673f1afcde4620ffaf',
+    messagingSenderId: '788288712446',
+    projectId: 'workifyv2',
+    databaseURL: 'https://workifyv2-default-rtdb.firebaseio.com',
+    storageBucket: 'workifyv2.firebasestorage.app',
+    iosBundleId: 'com.example.login1',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyARdfd1x8Be_cGW4viYOdlQcQHyUodNS0E',
+    appId: '1:788288712446:ios:0fe6673f1afcde4620ffaf',
+    messagingSenderId: '788288712446',
+    projectId: 'workifyv2',
+    databaseURL: 'https://workifyv2-default-rtdb.firebaseio.com',
+    storageBucket: 'workifyv2.firebasestorage.app',
+    iosBundleId: 'com.example.login1',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCGGea6ilGbWsnyvZS81NVCcKtmqVRmDmA',
+    appId: '1:788288712446:web:df5f1010655b1ce420ffaf',
+    messagingSenderId: '788288712446',
+    projectId: 'workifyv2',
+    authDomain: 'workifyv2.firebaseapp.com',
+    databaseURL: 'https://workifyv2-default-rtdb.firebaseio.com',
+    storageBucket: 'workifyv2.firebasestorage.app',
   );
 
 }

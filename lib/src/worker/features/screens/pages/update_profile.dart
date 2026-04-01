@@ -51,14 +51,14 @@ class _UpdateProfileState extends State<UpdateProfile> {
       if (user != null) {
         try {
           // Update Firestore data
-          await _firestore.collection('worker').doc(user.uid).update({
+          await _firestore.collection('worker').doc(user.uid).set({
             'name': _nameController.text,
             'phone': _phoneController.text,
             'email': _emailController.text,
             'skill': _skillController.text,
             'experience': _experienceController.text,
             'place': _placeController.text,
-          });
+          }, SetOptions(merge: true));
 
           // Update email and password in FirebaseAuth
           if (_emailController.text != user.email) {
