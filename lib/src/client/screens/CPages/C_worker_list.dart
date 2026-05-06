@@ -41,50 +41,54 @@ class WorkerList extends StatelessWidget {
             final workerExperience = workerData['experience']?.toString() ?? 'Not specified';
 
             return Card(
-              elevation: 2,
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Colors.blue.shade100,
-                  child: const Icon(Icons.person, color: Colors.blue),
-                ),
-                title: Text(
-                  workerName,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              elevation: 0,
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
                   children: [
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(workerPlace),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE3F2FD),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.engineering_rounded, color: Color(0xFF2196F3), size: 28),
                     ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        const Icon(Icons.work, size: 14, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text('Experience: \$workerExperience'),
-                      ],
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(workerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1A1A2E))),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                              const SizedBox(width: 2),
+                              Text(workerPlace, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text('$workerExperience experience', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _showWorkerDetails(context, workerData, viewModel),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2196F3),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Text('Book', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                      ),
                     ),
                   ],
                 ),
-                trailing: ElevatedButton(
-                  onPressed: () {
-                    _showWorkerDetails(context, workerData, viewModel);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('View'),
-                ),
-                isThreeLine: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
             );
           },

@@ -4,6 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:login_1/src/client/features/auth/viewmodels/client_auth_viewmodel.dart';
 import 'c_login.dart';
 
+const Color kClientPrimary = Color(0xFF2196F3);
+const Color kClientLight = Color(0xFFE3F2FD);
+const Color kClientAccent = Color(0xFF03A9F4);
+
 class CSignUpForm extends StatefulWidget {
   const CSignUpForm({super.key});
 
@@ -18,6 +22,8 @@ class _SignUpFormState extends State<CSignUpForm> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
@@ -29,10 +35,218 @@ class _SignUpFormState extends State<CSignUpForm> {
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Top curved header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(top: 60, bottom: 28),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [kClientPrimary, kClientAccent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(40),
+                  bottomRight: Radius.circular(40),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const Icon(Icons.person_add_alt_1_rounded, size: 48, color: Colors.white),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    'Join Workify as a Client',
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    _buildInputField(
+                      controller: _nameController,
+                      label: 'Full Name',
+                      icon: Icons.person_outline,
+                      validator: (v) => (v == null || v.isEmpty) ? 'Please enter your name' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    _buildInputField(
+                      controller: _emailController,
+                      label: 'Email Address',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => (v == null || v.isEmpty) ? 'Please enter your email' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    _buildInputField(
+                      controller: _phoneController,
+                      label: 'Phone Number',
+                      icon: Icons.phone_outlined,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Please enter your phone number';
+                        if (v.length != 10) return 'Phone number must be 10 digits';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
+                    _buildInputField(
+                      controller: _passwordController,
+                      label: 'Password',
+                      icon: Icons.lock_outline,
+                      obscureText: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                      validator: (v) => (v == null || v.isEmpty) ? 'Please enter your password' : null,
+                    ),
+                    const SizedBox(height: 14),
+                    _buildInputField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirm Password',
+                      icon: Icons.lock_outline,
+                      obscureText: _obscureConfirmPassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                      ),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Please confirm your password';
+                        if (v != _passwordController.text) return 'Passwords do not match';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 28),
+
+                    Consumer<ClientAuthViewModel>(
+                      builder: (context, viewModel, child) {
+                        if (viewModel.isLoading) {
+                          return const Center(child: CircularProgressIndicator(color: kClientPrimary));
+                        }
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: () => _signup(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kClientPrimary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              elevation: 4,
+                              shadowColor: kClientPrimary.withOpacity(0.4),
+                            ),
+                            child: const Text(
+                              'Create Account',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Already have an account? ", style: TextStyle(color: Colors.grey)),
+                        GestureDetector(
+                          onTap: () => Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const CLogin()),
+                          ),
+                          child: const Text(
+                            'Sign In',
+                            style: TextStyle(color: kClientPrimary, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    Widget? suffixIcon,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      validator: validator,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: kClientPrimary, size: 22),
+        suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: kClientLight,
+        labelStyle: const TextStyle(color: Colors.grey),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: kClientPrimary, width: 1.5)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Colors.red)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Colors.red, width: 1.5)),
+      ),
+    );
+  }
+
   void _signup(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
       final viewModel = Provider.of<ClientAuthViewModel>(context, listen: false);
-
       final success = await viewModel.signup(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
@@ -44,7 +258,12 @@ class _SignUpFormState extends State<CSignUpForm> {
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Client created successfully')),
+          SnackBar(
+            content: const Text('Account created successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
         );
         Navigator.pushReplacement(
           context,
@@ -52,85 +271,14 @@ class _SignUpFormState extends State<CSignUpForm> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(viewModel.errorMessage ?? 'Sign up failed')),
+          SnackBar(
+            content: Text(viewModel.errorMessage ?? 'Sign up failed'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
         );
       }
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Client Sign Up')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              _buildTextField('Name', _nameController),
-              const SizedBox(height: 20),
-              _buildTextField('Email ID', _emailController),
-              const SizedBox(height: 20),
-              _buildTextField('Phone Number', _phoneController, inputType: TextInputType.number, inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
-              ]),
-              const SizedBox(height: 20),
-              _buildTextField('Password', _passwordController, obscureText: true),
-              const SizedBox(height: 20),
-              _buildTextField('Confirm Password', _confirmPasswordController, obscureText: true),
-              const SizedBox(height: 40),
-              Center(
-                child: Consumer<ClientAuthViewModel>(
-                  builder: (context, viewModel, child) {
-                    if (viewModel.isLoading) {
-                      return const CircularProgressIndicator();
-                    }
-                    return ElevatedButton(
-                      onPressed: () => _signup(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                        textStyle: const TextStyle(fontSize: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                        ),
-                      ),
-                      child: const Text('Sign Up'),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController controller,
-      {bool obscureText = false,
-      TextInputType inputType = TextInputType.text,
-      List<TextInputFormatter>? inputFormatters}) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: inputType,
-      inputFormatters: inputFormatters,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
-        filled: true,
-        fillColor: Colors.grey[200],
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) return 'Please enter your $label';
-        if (label == 'Phone Number' && value.length != 10) return 'Phone number must be 10 digits';
-        if (label == 'Confirm Password' && value != _passwordController.text) return 'Passwords do not match';
-        return null;
-      },
-    );
   }
 }

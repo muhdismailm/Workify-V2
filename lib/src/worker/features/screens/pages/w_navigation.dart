@@ -1,137 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:login_1/src/worker/features/screens/login/w_logout.dart';
-import 'package:login_1/src/worker/features/screens/pages/update_profile.dart'; // Import the profile update screen
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-// Import the navigation drawer
+import 'package:login_1/src/worker/features/screens/pages/update_profile.dart';
+
+const Color kWorkerPrimary = Color(0xFFFFA000);
+const Color kWorkerAccent = Color(0xFFFFD54F);
 
 class WorkerNavigationDrawer extends StatelessWidget {
   final String? userName;
-  final String? workerSkill; // Add a parameter for the worker's skill
+  final String? workerSkill;
 
   const WorkerNavigationDrawer({super.key, this.userName, this.workerSkill});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          DrawerHeader(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 24),
             decoration: const BoxDecoration(
-              color: Colors.amber,
+              gradient: LinearGradient(
+                colors: [kWorkerPrimary, kWorkerAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 40, color: Colors.amber),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  userName ?? 'User', // Display the logged-in user's name
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white54, width: 2)),
+                  child: const CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white24,
+                    child: Icon(Icons.engineering_rounded, size: 36, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  workerSkill ?? 'Skill not set', // Display the worker's skill
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white70,
-                  ),
-                ),
+                const SizedBox(height: 12),
+                Text(userName ?? 'Worker', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(workerSkill ?? 'Skill not set', style: const TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.update, color: Colors.grey), // Explicitly set the icon color
-            title: const Text('Update Profile'),
+          const SizedBox(height: 12),
+          _buildTile(
+            icon: Icons.manage_accounts_outlined,
+            title: 'Update Profile',
+            color: kWorkerPrimary,
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UpdateProfile(), // Replace with your profile update screen
-                ),
-              );
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const UpdateProfile()));
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.logout_outlined, color: Colors.grey), // Explicitly set the icon color
-            title: const Text('Logout'),
+          const Divider(indent: 16, endIndent: 16),
+          _buildTile(
+            icon: Icons.logout_outlined,
+            title: 'Logout',
+            color: Colors.redAccent,
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const WorkerLogoutPage(),
-                ),
-              );
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const WorkerLogoutPage()));
             },
+          ),
+          const Spacer(),
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Workify v1.0', style: TextStyle(color: Colors.grey, fontSize: 12)),
           ),
         ],
       ),
     );
   }
-}
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  String? userName;
-  String? workerSkill;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchWorkerData();
-  }
-Future<void> _fetchWorkerData() async {
-  try {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentSnapshot workerDoc = await _firestore.collection('worker').doc(user.uid).get();
-      if (workerDoc.exists && mounted) {
-        Map<String, dynamic> data = workerDoc.data() as Map<String, dynamic>;
-        setState(() {
-          userName = data['name']?.toString() ?? 'User';
-          workerSkill = data['skill']?.toString() ?? 'Skill not set';
-        });
-        print("Fetched worker data: Name=$userName, Skill=$workerSkill");
-      } else {
-        print("Worker document does not exist for user: ${user.uid}");
-      }
-    } else {
-      print("No authenticated user found");
-    }
-  } catch (e) {
-    print("Error fetching worker data: $e");
-  }
-}
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: GlobalKey<ScaffoldState>(),
-      drawer: WorkerNavigationDrawer(
-        userName: userName, // Pass the worker's name
-        workerSkill: workerSkill, // Pass the worker's skill
+  Widget _buildTile({required IconData icon, required String title, required Color color, required VoidCallback onTap}) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, color: color, size: 22),
       ),
-      body: const Center(
-        child: Text('Welcome to Worker Home Page'),
-      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+      onTap: onTap,
     );
   }
 }

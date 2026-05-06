@@ -7,6 +7,9 @@ import 'package:login_1/src/worker/features/screens/pages/w_navigation.dart';
 import 'package:login_1/src/worker/features/screens/pages/w_requests.dart';
 import 'package:firebase_database/firebase_database.dart';
 
+const Color kWorkerPrimary = Color(0xFFFFA000);
+const Color kWorkerAccent = Color(0xFFFFD54F);
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -51,6 +54,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       key: _scaffoldKey,
+      backgroundColor: const Color(0xFFFFFBF0),
       drawer: WorkerNavigationDrawer(
         userName: viewModel.workerName,
         workerSkill: viewModel.workerSkill,
@@ -61,49 +65,73 @@ class _HomePageState extends State<HomePage> {
             children: [
               // Navigation Bar with Welcome Message and Profile Icon
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 42),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
                 decoration: const BoxDecoration(
-                  color: Colors.amber,
+                  gradient: LinearGradient(
+                    colors: [kWorkerPrimary, kWorkerAccent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(16),
-                    bottomRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         GestureDetector(
                           onTap: () {
                             _scaffoldKey.currentState?.openDrawer();
                           },
-                          child: CircleAvatar(
-                            backgroundColor: Colors.grey[300],
-                            child: const Icon(Icons.person, color: Colors.grey),
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white54, width: 2),
+                            ),
+                            child: const CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.white24,
+                              child: Icon(Icons.engineering_rounded, color: Colors.white, size: 22),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'WELCOME',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              viewModel.workerName ?? 'Worker',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.work_outline, color: Colors.white, size: 14),
+                              SizedBox(width: 4),
+                              Text('Worker', style: TextStyle(color: Colors.white, fontSize: 13)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hello, ${viewModel.workerName ?? 'Worker'} 👋',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Manage your jobs & requests',
+                          style: TextStyle(color: Colors.white70, fontSize: 13),
                         ),
                       ],
                     ),
@@ -315,24 +343,26 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list),
-            label: 'Requests',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-            label: 'Account',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber,
-        onTap: _onItemTapped,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, -4)),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), activeIcon: Icon(Icons.list_alt), label: 'Requests'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Account'),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: kWorkerPrimary,
+          unselectedItemColor: Colors.grey,
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }

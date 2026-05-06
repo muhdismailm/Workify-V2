@@ -1,76 +1,90 @@
 import 'package:flutter/material.dart';
-import 'package:login_1/src/client/screens/CPages/update_profile.dart'; // Import the client profile update screen
-import 'package:login_1/src/client/screens/login/c_logout.dart'; // Import the client logout screen
+import 'package:login_1/src/client/screens/CPages/update_profile.dart';
+import 'package:login_1/src/client/screens/login/c_logout.dart';
+
+const Color kClientPrimary = Color(0xFF2196F3);
+const Color kClientAccent = Color(0xFF03A9F4);
 
 class ClientNavigationDrawer extends StatelessWidget {
   final String? userName;
-
   const ClientNavigationDrawer({super.key, this.userName});
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
+      child: Column(
         children: [
-          DrawerHeader(
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 24),
             decoration: const BoxDecoration(
-              color: Colors.blue,
+              gradient: LinearGradient(
+                colors: [kClientPrimary, kClientAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 40, color: Colors.blue),
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Colors.white54, width: 2)),
+                  child: const CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Colors.white24,
+                    child: Icon(Icons.person, size: 36, color: Colors.white),
+                  ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Text(
-                  userName ?? 'User', // Display the logged-in client's name
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  userName ?? 'Client',
+                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                const Text(
-                  'Client',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white70,
-                  ),
-                ),
+                const Text('Client Account', style: TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.update, color: Colors.grey), // Explicitly set the icon color
-            title: const Text('Update Profile'),
+          const SizedBox(height: 12),
+          _buildTile(
+            icon: Icons.manage_accounts_outlined,
+            title: 'Update Profile',
+            color: kClientPrimary,
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const UpdateProfile(), // Replace with your client profile update screen
-                ),
-              );
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const UpdateProfile()));
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.login_outlined,color: Colors.grey), // Explicitly set the icon color
-            title: const Text('Logout'),
+          const Divider(indent: 16, endIndent: 16),
+          _buildTile(
+            icon: Icons.logout_outlined,
+            title: 'Logout',
+            color: Colors.redAccent,
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ClientLogoutPage(), // Replace with your client logout screen
-                ),
-              );
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientLogoutPage()));
             },
+          ),
+          const Spacer(),
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Workify v1.0', style: TextStyle(color: Colors.grey, fontSize: 12)),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTile({required IconData icon, required String title, required Color color, required VoidCallback onTap}) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, color: color, size: 22),
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+      onTap: onTap,
     );
   }
 }
