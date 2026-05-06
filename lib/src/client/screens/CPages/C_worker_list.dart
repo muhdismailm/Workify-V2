@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:login_1/src/client/features/home/viewmodels/client_home_viewmodel.dart';
+import 'package:login_1/src/core/widgets/success_page.dart';
+import 'package:login_1/src/client/screens/CPages/c_homescreen.dart';
 
 class WorkerList extends StatelessWidget {
   const WorkerList({super.key});
@@ -126,16 +128,19 @@ class WorkerList extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.of(context).pop();
+                final nav       = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                nav.pop(); // close dialog
                 final success = await viewModel.sendRequest(workerData);
                 if (context.mounted) {
                   if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Request sent successfully!')),
-                    );
+                    _showBookingSuccess(context);
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Failed to send request. Please try again.')),
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Failed to send request. Please try again.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
                     );
                   }
                 }
@@ -148,6 +153,35 @@ class WorkerList extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  // Navigate to the success page after booking
+  void _showBookingSuccess(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SuccessPage(
+          title: 'Your Booking is\nSuccessfully Placed!',
+          primaryLabel: 'Chat with Vendor',
+          primaryIcon: Icons.chat_bubble_outline,
+          primaryColor: const Color(0xFF2196F3),
+          onPrimary: () {
+            // TODO: open chat screen
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Chat feature coming soon!'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          onHome: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const ClientHomePage()),
+              (route) => false,
+            );
+          },
+        ),
+      ),
     );
   }
 }

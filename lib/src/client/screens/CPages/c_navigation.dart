@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:login_1/src/client/screens/CPages/update_profile.dart';
 import 'package:login_1/src/client/screens/login/c_logout.dart';
 
@@ -33,7 +34,7 @@ class ClientNavigationDrawer extends StatelessWidget {
                   child: const CircleAvatar(
                     radius: 32,
                     backgroundColor: Colors.white24,
-                    child: Icon(Icons.person, size: 36, color: Colors.white),
+                    child: FaIcon(FontAwesomeIcons.circleUser, size: 36, color: Colors.white),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -47,7 +48,7 @@ class ClientNavigationDrawer extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _buildTile(
-            icon: Icons.manage_accounts_outlined,
+            icon: FontAwesomeIcons.userPen,
             title: 'Update Profile',
             color: kClientPrimary,
             onTap: () {
@@ -57,7 +58,7 @@ class ClientNavigationDrawer extends StatelessWidget {
           ),
           const Divider(indent: 16, endIndent: 16),
           _buildTile(
-            icon: Icons.logout_outlined,
+            icon: FontAwesomeIcons.rightFromBracket,
             title: 'Logout',
             color: Colors.redAccent,
             onTap: () {
@@ -79,7 +80,7 @@ class ClientNavigationDrawer extends StatelessWidget {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: color, size: 22),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),

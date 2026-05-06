@@ -86,10 +86,17 @@ class DatabaseService {
     User? user = _auth.currentUser;
     if (user == null) return null;
 
-    DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
-    if (userDoc.exists) {
-      return userDoc.data() as Map<String, dynamic>;
+    // Client docs are stored in 'client' collection with uid field
+    final qs = await _firestore
+        .collection('client')
+        .where('uid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+
+    if (qs.docs.isNotEmpty) {
+      return qs.docs.first.data();
     }
+
     return {
       'name': user.displayName ?? '',
       'email': user.email ?? '',
@@ -106,18 +113,27 @@ class DatabaseService {
     User? user = _auth.currentUser;
     if (user == null) throw Exception("User not logged in");
 
-    await _firestore.collection('users').doc(user.uid).set({
+    // Find the client's existing document (doc ID is a custom string, not uid)
+    final qs = await _firestore
+        .collection('client')
+        .where('uid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+
+    if (qs.docs.isEmpty) throw Exception("Client profile not found");
+
+    await qs.docs.first.reference.update({
       'name': name,
       'phone': phone,
       'email': email,
       'address': address,
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    });
 
     if (email != user.email) {
       await user.verifyBeforeUpdateEmail(email);
     }
-    
+
     if (password.isNotEmpty) {
       await user.updatePassword(password);
     }
@@ -128,15 +144,16 @@ class DatabaseService {
     User? user = _auth.currentUser;
     if (user == null) return null;
 
-    DocumentSnapshot userDoc = await _firestore.collection('worker').doc(user.uid).get();
-    if (userDoc.exists) {
-      return userDoc.data() as Map<String, dynamic>;
-    }
-    
-    // Also try checking by authUid just in case the document ID is not uid
-    QuerySnapshot qs = await _firestore.collection('worker').where('authUid', isEqualTo: user.uid).limit(1).get();
+    // Worker docs use a custom ID (e.g. "JOH42"), not the Auth UID.
+    // Always query by authUid field to find the correct document.
+    final qs = await _firestore
+        .collection('worker')
+        .where('authUid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+
     if (qs.docs.isNotEmpty) {
-      return qs.docs.first.data() as Map<String, dynamic>;
+      return qs.docs.first.data();
     }
 
     return {
@@ -157,7 +174,17 @@ class DatabaseService {
     User? user = _auth.currentUser;
     if (user == null) throw Exception("User not logged in");
 
-    await _firestore.collection('worker').doc(user.uid).set({
+    // Worker docs use a custom ID — find the existing doc by authUid
+    final qs = await _firestore
+        .collection('worker')
+        .where('authUid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+
+    if (qs.docs.isEmpty) throw Exception("Worker profile not found");
+
+    // Update the EXISTING document, never create a new one
+    await qs.docs.first.reference.update({
       'name': name,
       'phone': phone,
       'email': email,
@@ -165,12 +192,12 @@ class DatabaseService {
       'experience': experience,
       'place': place,
       'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    });
 
     if (email != user.email) {
       await user.verifyBeforeUpdateEmail(email);
     }
-    
+
     if (password.isNotEmpty) {
       await user.updatePassword(password);
     }

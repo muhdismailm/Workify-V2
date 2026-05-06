@@ -16,6 +16,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_native_splash: ^2.4.4
+  font_awesome_flutter: ^10.7.0
   provider: ^6.1.5+1
   table_calendar: ^3.2.0
 
@@ -25,6 +26,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
 
 flutter_native_splash:
   color: '#f7f6f1'
@@ -32,8 +34,16 @@ flutter_native_splash:
   image: assets/images/worker.png
   image_dark: assets/images/worker.png
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/workify_app_icon.png"
+  adaptive_icon_background: "#FFA000"
+  adaptive_icon_foreground: "assets/images/workify_app_icon.png"
+  min_sdk_android: 21
+
 flutter:
   assets:
     - assets/images/worker.png
     - assets/images/plumber.png
-
+    - assets/images/workify_app_icon.png

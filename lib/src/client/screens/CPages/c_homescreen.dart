@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:login_1/src/client/features/home/viewmodels/client_home_viewmodel.dart';
 import 'package:login_1/src/client/screens/CPages/request.dart';
@@ -41,17 +42,17 @@ class _ClientHomePageState extends State<ClientHomePage> {
   int _selectedIndex = 0;
 
   final List<_Category> _categories = [
-    _Category('Electrician', Icons.bolt,              'Electrician'),
-    _Category('Plumber',     Icons.plumbing,           'Plumber'),
-    _Category('Carpenter',   Icons.carpenter,          'Carpenter'),
-    _Category('Painter',     Icons.brush,              'Painter'),
+    _Category('Electrician', FontAwesomeIcons.bolt,        'Electrician'),
+    _Category('Plumber',     FontAwesomeIcons.faucet,      'Plumber'),
+    _Category('Carpenter',   FontAwesomeIcons.hammer,      'Carpenter'),
+    _Category('Painter',     FontAwesomeIcons.paintRoller, 'Painter'),
   ];
 
   final List<_PopularService> _popular = [
-    _PopularService('Electrician', 'from \$40/hr', Icons.bolt,       Color(0xFFE3F2FD), 'Electrician'),
-    _PopularService('Plumber',     'from \$35/hr', Icons.plumbing,   Color(0xFFE8F5E9), 'Plumber'),
-    _PopularService('Carpenter',   'from \$45/hr', Icons.carpenter,  Color(0xFFFFF3E0), 'Carpenter'),
-    _PopularService('Painter',     'from \$30/hr', Icons.brush,      Color(0xFFFCE4EC), 'Painter'),
+    _PopularService('Electrician', 'from \$40/hr', FontAwesomeIcons.bolt,        Color(0xFFE3F2FD), 'Electrician'),
+    _PopularService('Plumber',     'from \$35/hr', FontAwesomeIcons.faucet,      Color(0xFFE8F5E9), 'Plumber'),
+    _PopularService('Carpenter',   'from \$45/hr', FontAwesomeIcons.hammer,      Color(0xFFFFF3E0), 'Carpenter'),
+    _PopularService('Painter',     'from \$30/hr', FontAwesomeIcons.paintRoller, Color(0xFFFCE4EC), 'Painter'),
   ];
 
   @override
@@ -247,7 +248,7 @@ class _ClientHomePageState extends State<ClientHomePage> {
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: isSelected ? kClientPrimary.withOpacity(0.25) : Colors.black.withOpacity(0.06),
+                        color: isSelected ? kClientPrimary.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.06),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -307,7 +308,7 @@ class _ClientHomePageState extends State<ClientHomePage> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 10, offset: const Offset(0, 4))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.07), blurRadius: 10, offset: const Offset(0, 4))],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,7 +323,7 @@ class _ClientHomePageState extends State<ClientHomePage> {
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                         ),
                         child: Center(
-                          child: Icon(svc.icon, size: 52, color: kClientPrimary.withOpacity(0.7)),
+                          child: Icon(svc.icon, size: 52, color: kClientPrimary.withValues(alpha: 0.7)),
                         ),
                       ),
                       // Arrow button top-right
@@ -369,15 +370,25 @@ class _ClientHomePageState extends State<ClientHomePage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 16, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 16, offset: const Offset(0, -4))],
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today_outlined), activeIcon: Icon(Icons.calendar_today), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Account'),
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.house, size: 20),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.calendar, size: 20),
+            activeIcon: FaIcon(FontAwesomeIcons.calendarCheck, size: 20),
+            label: 'Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.circleUser, size: 20),
+            label: 'Account',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: kClientPrimary,
