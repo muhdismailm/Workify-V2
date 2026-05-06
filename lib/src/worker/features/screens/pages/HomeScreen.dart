@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:table_calendar/table_calendar.dart'; // Import the TableCalendar package
-import 'package:login_1/src/worker/features/screens/pages/w_navigation.dart'; // Import the navigation drawer
-import 'package:login_1/src/worker/features/screens/pages/w_requests.dart'; // Import the requests page
+import 'package:table_calendar/table_calendar.dart';
+import 'package:login_1/src/worker/features/home/viewmodels/worker_home_viewmodel.dart';
+import 'package:login_1/src/worker/features/screens/pages/w_navigation.dart';
+import 'package:login_1/src/worker/features/screens/pages/w_requests.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,38 +15,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>(); // Key to control the drawer
-  String? name;
-  String? skill; // Add a variable to store the worker's skill
-  int _selectedIndex = 0; // Track the selected index for the bottom navigation bar
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  int _selectedIndex = 0;
 
   // Calendar-related variables
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  bool _showCalendar = false; // Track whether to show the calendar
-  final bool _showRatings = false; // Track whether to show ratings
-
-  @override
-  void initState() {
-    super.initState();
-    _getUserData();
-  }
-
-  Future<void> _getUserData() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentSnapshot userDoc = await _firestore.collection('worker').doc(user.uid).get();
-      if (userDoc.exists) {
-        setState(() {
-          name = userDoc['name']; // Fetch the worker's name
-          skill = userDoc['skill']; // Fetch the worker's skill
-        });
-      }
-    }
-  }
+  bool _showCalendar = false;
+  final bool _showRatings = false;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -53,40 +31,39 @@ class _HomePageState extends State<HomePage> {
     });
 
     if (index == 0) {
-      // Home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else if (index == 1) {
-      // Requests
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const WorkerRequestsPage()),
       );
     } else if (index == 2) {
-      // Account
-      _scaffoldKey.currentState?.openDrawer(); // Open the navigation drawer
+      _scaffoldKey.currentState?.openDrawer();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<WorkerHomeViewModel>(context);
+
     return Scaffold(
-      key: _scaffoldKey, // Assign the key to the Scaffold
+      key: _scaffoldKey,
       drawer: WorkerNavigationDrawer(
-        userName: name, // Pass the worker's name
-        workerSkill: skill, // Pass the worker's skill
-      ), // Use the navigation drawer
+        userName: viewModel.workerName,
+        workerSkill: viewModel.workerSkill,
+      ),
       body: SafeArea(
-        child: SingleChildScrollView( // Wrap the body in SingleChildScrollView
+        child: SingleChildScrollView(
           child: Column(
             children: [
               // Navigation Bar with Welcome Message and Profile Icon
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 42),
                 decoration: const BoxDecoration(
-                  color: Colors.amber, // Background color for the navigation bar
+                  color: Colors.amber,
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(16),
                     bottomRight: Radius.circular(16),
@@ -99,7 +76,7 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            _scaffoldKey.currentState?.openDrawer(); // Open the drawer when tapped
+                            _scaffoldKey.currentState?.openDrawer();
                           },
                           child: CircleAvatar(
                             backgroundColor: Colors.grey[300],
@@ -119,7 +96,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                             Text(
-                              name ?? 'User', // Display the logged-in user's name
+                              viewModel.workerName ?? 'Worker',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -147,18 +124,17 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.grey.withOpacity(0.2),
                       spreadRadius: 2,
                       blurRadius: 5,
-                      offset: const Offset(0, 3), // Shadow position
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: const Text(
+                    const Center(
+                      child: Text(
                         'My Calendar',
                         style: TextStyle(
-                          
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -169,17 +145,17 @@ class _HomePageState extends State<HomePage> {
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {
-                            _showCalendar = !_showCalendar; // Toggle calendar visibility
+                            _showCalendar = !_showCalendar;
                           });
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.amber,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Adjust padding for better alignment
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         ),
                         child: Text(
                           _showCalendar ? 'Hide Calendar' : 'View Calendar',
-                          textAlign: TextAlign.center, // Ensure text is centered
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
@@ -188,7 +164,6 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 16),
 
-              // Show Calendar if _showCalendar is true
               if (_showCalendar)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -240,15 +215,15 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.grey.withOpacity(0.2),
                       spreadRadius: 2,
                       blurRadius: 5,
-                      offset: const Offset(0, 3), // Shadow position
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: const Text(
+                    const Center(
+                      child: Text(
                         'My Ratings',
                         style: TextStyle(
                           fontSize: 18,
@@ -258,10 +233,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 15),
                     StreamBuilder<DatabaseEvent>(
-                      stream: FirebaseDatabase.instance.ref('ratings').onValue,
+                      stream: viewModel.getRTDBRatingsStream(),
                       builder: (context, snapshot) {
                         if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
-                          return const Text('No ratings yet.');
+                          return const Center(child: Text('No ratings yet.'));
                         }
 
                         Map<dynamic, dynamic> ratings =
@@ -279,7 +254,7 @@ class _HomePageState extends State<HomePage> {
 
                         return Center(
                           child: Text(
-                            'Average Rating: ${averageRating.toStringAsFixed(1)} / 5',
+                            'Average Rating: \${averageRating.toStringAsFixed(1)} / 5',
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         );
@@ -290,12 +265,11 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 16),
 
-              // Show Ratings if _showRatings is true
               if (_showRatings)
                 SizedBox(
-                  height: 300, // Set a fixed height for the ratings list
+                  height: 300,
                   child: StreamBuilder<QuerySnapshot>(
-                    stream: _firestore.collection('ratings').snapshots(),
+                    stream: viewModel.getFirestoreRatingsStream(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
@@ -326,8 +300,8 @@ class _HomePageState extends State<HomePage> {
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Rating: $stars'),
-                                Text('Review: $review'),
+                                Text('Rating: \$stars'),
+                                Text('Review: \$review'),
                               ],
                             ),
                             isThreeLine: true,

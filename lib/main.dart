@@ -1,15 +1,65 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:login_1/src/core/services/auth_service.dart';
+import 'package:login_1/src/core/services/database_service.dart';
+import 'package:login_1/src/client/features/auth/viewmodels/client_auth_viewmodel.dart';
+import 'package:login_1/src/client/features/home/viewmodels/client_home_viewmodel.dart';
+import 'package:login_1/src/client/features/requests/viewmodels/client_requests_viewmodel.dart';
+import 'package:login_1/src/client/features/profile/viewmodels/client_profile_viewmodel.dart';
+import 'package:login_1/src/worker/features/auth/viewmodels/worker_auth_viewmodel.dart';
+import 'package:login_1/src/worker/features/home/viewmodels/worker_home_viewmodel.dart';
+import 'package:login_1/src/worker/features/requests/viewmodels/worker_requests_viewmodel.dart';
+import 'package:login_1/src/worker/features/profile/viewmodels/worker_profile_viewmodel.dart';
 import 'package:login_1/src/client/screens/login/c_login.dart';
 import 'package:login_1/src/worker/features/screens/login/w_login.dart';
-
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const App());
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<AuthService>(create: (_) => AuthService()),
+        Provider<DatabaseService>(create: (_) => DatabaseService()),
+        ChangeNotifierProxyProvider<AuthService, ClientAuthViewModel>(
+          create: (context) => ClientAuthViewModel(context.read<AuthService>()),
+          update: (context, auth, previous) => ClientAuthViewModel(auth),
+        ),
+        ChangeNotifierProxyProvider<DatabaseService, ClientHomeViewModel>(
+          create: (context) => ClientHomeViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) => previous ?? ClientHomeViewModel(db),
+        ),
+        ChangeNotifierProxyProvider<DatabaseService, ClientRequestsViewModel>(
+          create: (context) => ClientRequestsViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) => previous ?? ClientRequestsViewModel(db),
+        ),
+        ChangeNotifierProxyProvider<DatabaseService, ClientProfileViewModel>(
+          create: (context) => ClientProfileViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) => previous ?? ClientProfileViewModel(db),
+        ),
+        ChangeNotifierProxyProvider<AuthService, WorkerAuthViewModel>(
+          create: (context) => WorkerAuthViewModel(context.read<AuthService>()),
+          update: (context, auth, previous) => previous ?? WorkerAuthViewModel(auth),
+        ),
+        ChangeNotifierProxyProvider<DatabaseService, WorkerHomeViewModel>(
+          create: (context) => WorkerHomeViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) => previous ?? WorkerHomeViewModel(db),
+        ),
+        ChangeNotifierProxyProvider<DatabaseService, WorkerRequestsViewModel>(
+          create: (context) => WorkerRequestsViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) => previous ?? WorkerRequestsViewModel(db),
+        ),
+        ChangeNotifierProxyProvider<DatabaseService, WorkerProfileViewModel>(
+          create: (context) => WorkerProfileViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) => previous ?? WorkerProfileViewModel(db),
+        ),
+      ],
+      child: const App(),
+    ),
+  );
 }
 
 class App extends StatelessWidget {

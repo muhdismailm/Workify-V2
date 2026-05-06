@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:login_1/src/worker/features/requests/viewmodels/worker_requests_viewmodel.dart';
 import 'package:login_1/src/worker/features/screens/pages/HomeScreen.dart';
 import 'package:login_1/src/worker/features/screens/pages/w_navigation.dart' hide HomePage;
 
@@ -11,11 +13,10 @@ class WorkerRequestsPage extends StatefulWidget {
 }
 
 class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
-  int _selectedIndex = 1; // Set "Requests" as the default selected tab
+  int _selectedIndex = 1;
 
   void _onItemTapped(int index) {
     if (index == 0) {
-      // Navigate to Home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -23,7 +24,6 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
     } else if (index == 1) {
       // Stay on "Requests"
     } else if (index == 2) {
-      // Navigate to Account
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const WorkerNavigationDrawer()),
@@ -36,13 +36,15 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<WorkerRequestsViewModel>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Client Requests'),
         backgroundColor: Colors.amber,
       ),
       body: StreamBuilder<DatabaseEvent>(
-        stream: FirebaseDatabase.instance.ref('requests').onValue,
+        stream: viewModel.getRequestsStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -63,20 +65,18 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
             );
           }
 
-          // Parse the data from Firebase
           Map<dynamic, dynamic> requests =
               snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
 
-          // Convert the map to a list for display
           List<Map<String, dynamic>> requestList = requests.entries.map((entry) {
             return {
-              'key': entry.key, // Store the unique key for deletion
+              'key': entry.key,
               'workerName': entry.value['workerName'],
               'workerSkill': entry.value['workerSkill'],
               'clientName': entry.value['clientName'],
-              'clientPhone': entry.value['clientPhone'], // Use clientPhone instead of clientContact
+              'clientPhone': entry.value['clientPhone'] ?? entry.value['clientContact'], // Fallback
               'timestamp': entry.value['timestamp'],
-              'status': entry.value['status'] ?? 'Pending', // Default to "Pending"
+              'status': entry.value['status'] ?? 'Pending',
             };
           }).toList();
 
@@ -93,11 +93,11 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Skill: ${request['workerSkill'] ?? 'Unknown Skill'}'),
-                      Text('Contact: ${request['clientPhone'] ?? 'Unknown Phone'}'), // Updated field
-                      Text('Timestamp: ${request['timestamp'] ?? 'Unknown Time'}'),
+                      Text('Skill: \${request['workerSkill'] ?? 'Unknown Skill'}'),
+                      Text('Contact: \${request['clientPhone'] ?? 'Unknown Phone'}'),
+                      Text('Timestamp: \${request['timestamp'] ?? 'Unknown Time'}'),
                       Text(
-                        'Status: ${request['status']}',
+                        'Status: \${request['status']}',
                         style: TextStyle(
                           color: request['status'] == 'Accepted'
                               ? Colors.green
@@ -109,7 +109,7 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
                   ),
                   trailing: ElevatedButton(
                     onPressed: () {
-                      _showRequestDetailsDialog(context, request);
+                      _showRequestDetailsDialog(context, request, viewModel);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amber,
@@ -146,44 +146,58 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
     );
   }
 
-  void _showRequestDetailsDialog(BuildContext context, Map<String, dynamic> request) {
+  void _showRequestDetailsDialog(
+      BuildContext context, Map<String, dynamic> request, WorkerRequestsViewModel viewModel) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Client Details: ${request['clientName']}'),
+          title: Text('Client Details: \${request['clientName']}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Skill: ${request['workerSkill']}'),
+              Text('Skill: \${request['workerSkill']}'),
               const SizedBox(height: 8),
-              Text('Contact: ${request['clientPhone']}'), // Updated field
+              Text('Contact: \${request['clientPhone']}'),
               const SizedBox(height: 8),
-              Text('Timestamp: ${request['timestamp']}'),
+              Text('Timestamp: \${request['timestamp']}'),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                // Reject the request (delete from Firebase)
-                await FirebaseDatabase.instance
-                    .ref('requests/${request['key']}')
-                    .remove();
-                Navigator.of(context).pop(); // Close the dialog
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Request rejected.')),
-                );
+                Navigator.of(context).pop();
+                final success = await viewModel.rejectRequest(request['key']);
+                if (context.mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Request rejected.')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to reject request.')),
+                    );
+                  }
+                }
               },
               child: const Text('Reject', style: TextStyle(color: Colors.red)),
             ),
             ElevatedButton(
-              onPressed: () {
-                _acceptRequest(request['key']);
-                Navigator.of(context).pop(); // Close the dialog
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Request accepted.')),
-                );
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final success = await viewModel.acceptRequest(request['key']);
+                if (context.mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Request accepted.')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to accept request.')),
+                    );
+                  }
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber,
@@ -194,16 +208,5 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
         );
       },
     );
-  }
-
-  void _acceptRequest(String requestKey) async {
-    try {
-      // Update the status to "Accepted" in Firebase
-      await FirebaseDatabase.instance
-          .ref('requests/$requestKey')
-          .update({'status': 'Accepted'});
-    } catch (e) {
-      print('Error accepting request: $e');
-    }
   }
 }

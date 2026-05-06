@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:login_1/src/client/screens/CPages/c_homescreen.dart'; // Import the home screen
+import 'package:provider/provider.dart';
+import 'package:login_1/src/client/features/requests/viewmodels/client_requests_viewmodel.dart';
+import 'package:login_1/src/client/screens/CPages/c_homescreen.dart';
 
 class BookedServicesPage extends StatefulWidget {
   const BookedServicesPage({super.key});
@@ -10,11 +12,10 @@ class BookedServicesPage extends StatefulWidget {
 }
 
 class _BookedServicesPageState extends State<BookedServicesPage> {
-  int _selectedIndex = 1; // Set "My Bookings" as the default selected tab
+  int _selectedIndex = 1;
 
   void _onItemTapped(int index) {
     if (index == 0) {
-      // Navigate to Home
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ClientHomePage()),
@@ -22,7 +23,6 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
     } else if (index == 1) {
       // Stay on "My Bookings"
     } else if (index == 2) {
-      // Placeholder for Account page
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account page is under construction.')),
       );
@@ -34,6 +34,8 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final viewModel = Provider.of<ClientRequestsViewModel>(context, listen: false);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -43,7 +45,7 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
         backgroundColor: Colors.blue,
       ),
       body: StreamBuilder<DatabaseEvent>(
-        stream: FirebaseDatabase.instance.ref('requests').onValue,
+        stream: viewModel.getRequestsStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -64,22 +66,20 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
             );
           }
 
-          // Parse the data from Firebase
           Map<dynamic, dynamic> requests =
               snapshot.data!.snapshot.value as Map<dynamic, dynamic>;
 
-          // Convert the map to a list for display
           List<Map<String, dynamic>> requestList = requests.entries.map((entry) {
             return {
-              'key': entry.key, // Store the unique key for updating the status
+              'key': entry.key,
               'workerName': entry.value['workerName'],
               'workerSkill': entry.value['workerSkill'],
-              'workerPhone': entry.value['workerPhone'], // Worker phone number
+              'workerPhone': entry.value['workerPhone'],
               'clientName': entry.value['clientName'],
-              'clientContact': entry.value['clientContact'], // Client phone number
-              'clientEmail': entry.value['clientEmail'], // Client email
+              'clientContact': entry.value['clientContact'],
+              'clientEmail': entry.value['clientEmail'],
               'timestamp': entry.value['timestamp'],
-              'status': entry.value['status'] ?? 'Pending', // Default to "Pending"
+              'status': entry.value['status'] ?? 'Pending',
             };
           }).toList();
 
@@ -95,7 +95,6 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Worker details
                       Row(
                         children: [
                           const Icon(Icons.person, color: Colors.blue),
@@ -107,26 +106,24 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text('Skill: ${request['workerSkill'] ?? 'Unknown Skill'}'),
-                      Text('Client: ${request['clientName'] ?? 'Unknown Client'}'),
-                      Text('Worker Contact: ${request['workerPhone'] ?? 'Unknown Phone'}'),
+                      Text('Skill: \${request['workerSkill'] ?? 'Unknown Skill'}'),
+                      Text('Client: \${request['clientName'] ?? 'Unknown Client'}'),
+                      Text('Worker Contact: \${request['workerPhone'] ?? 'Unknown Phone'}'),
                       Text(
-                        'Status: ${request['status']}',
+                        'Status: \${request['status']}',
                         style: TextStyle(
                           color: request['status'] == 'Accepted' ? Colors.green : Colors.orange,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      // Buttons (Rate and Reject)
                       if (request['status'] == 'Accepted')
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             ElevatedButton(
                               onPressed: () {
-                                _showRatingDialog(context, request['workerName'], request['key']);
+                                _showRatingDialog(context, request['workerName'], request['key'], viewModel);
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
@@ -135,8 +132,19 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
                               child: const Text('Rate'),
                             ),
                             ElevatedButton(
-                              onPressed: () {
-                                _rejectRequest(context, request['key']);
+                              onPressed: () async {
+                                final success = await viewModel.rejectRequest(request['key']);
+                                if (context.mounted) {
+                                  if (success) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Request rejected.')),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Error rejecting request.')),
+                                    );
+                                  }
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
@@ -176,83 +184,76 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
     );
   }
 
-  void _rejectRequest(BuildContext context, String requestKey) async {
-    try {
-      // Delete the request from Firebase
-      await FirebaseDatabase.instance.ref('requests/$requestKey').remove();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request rejected.')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error rejecting request: $e')),
-      );
-    }
-  }
-
-  void _showRatingDialog(BuildContext context, String workerName, String requestKey) {
-    int? selectedRating; // Variable to store the selected rating
+  void _showRatingDialog(
+      BuildContext context, String workerName, String requestKey, ClientRequestsViewModel viewModel) {
+    int? selectedRating;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Rate $workerName'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Please select a rating:'),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<int>(
-                initialValue: selectedRating,
-                decoration: const InputDecoration(
-                  labelText: 'Rating',
-                  border: OutlineInputBorder(),
-                ),
-                items: List.generate(5, (index) => index + 1) // Generate numbers 1 to 5
-                    .map((rating) => DropdownMenuItem<int>(
-                          value: rating,
-                          child: Text(rating.toString()),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedRating = value;
-                  });
-                },
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Rate \$workerName'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Please select a rating:'),
+                  const SizedBox(height: 10),
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedRating,
+                    decoration: const InputDecoration(
+                      labelText: 'Rating',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: List.generate(5, (index) => index + 1)
+                        .map((rating) => DropdownMenuItem<int>(
+                              value: rating,
+                              child: Text(rating.toString()),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedRating = value;
+                      });
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (selectedRating == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Please select a rating before submitting.')),
-                  );
-                  return;
-                }
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (selectedRating == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please select a rating before submitting.')),
+                      );
+                      return;
+                    }
 
-                // Save the rating to Firebase
-                await FirebaseDatabase.instance.ref('ratings/$requestKey').set({
-                  'workerName': workerName,
-                  'rating': selectedRating,
-                });
-
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Rating submitted successfully!')),
-                );
-              },
-              child: const Text('Submit'),
-            ),
-          ],
+                    Navigator.of(context).pop();
+                    final success = await viewModel.submitRating(requestKey, workerName, selectedRating!);
+                    
+                    if (context.mounted) {
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Rating submitted successfully!')),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to submit rating.')),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ],
+            );
+          }
         );
       },
     );

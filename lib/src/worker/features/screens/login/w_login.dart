@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:login_1/src/worker/features/auth/viewmodels/worker_auth_viewmodel.dart';
 import 'package:login_1/src/worker/features/screens/login/w_signup.dart';
 import 'package:login_1/src/worker/features/screens/widgets/w_appbar.dart';
 import 'package:login_1/src/worker/features/screens/pages/HomeScreen.dart';
@@ -13,9 +13,6 @@ class WLogin extends StatefulWidget {
 }
 
 class _LoginFormState extends State<WLogin> {
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
-
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -88,18 +85,25 @@ class _LoginFormState extends State<WLogin> {
                         },
                       ),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                          textStyle: const TextStyle(fontSize: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                        child: const Text('Login'),
+                      Consumer<WorkerAuthViewModel>(
+                        builder: (context, viewModel, child) {
+                          if (viewModel.isLoading) {
+                            return const CircularProgressIndicator();
+                          }
+                          return ElevatedButton(
+                            onPressed: () => _login(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amber,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                              textStyle: const TextStyle(fontSize: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                            ),
+                            child: const Text('Login'),
+                          );
+                        },
                       ),
                       const SizedBox(height: 20),
                       TextButton(
@@ -122,51 +126,29 @@ class _LoginFormState extends State<WLogin> {
     );
   }
 
-  void _login() async {
+  void _login(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      try {
-        final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
+      final viewModel = Provider.of<WorkerAuthViewModel>(context, listen: false);
+      
+      final success = await viewModel.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Logged in successfully')),
         );
 
-        final authUid = userCredential.user!.uid;
-
-        // Find the worker document with matching authUid
-        final querySnapshot = await _firestore
-            .collection('worker')
-            .where('authUid', isEqualTo: authUid)
-            .limit(1)
-            .get();
-
-        if (querySnapshot.docs.isNotEmpty) {
-          final userDoc = querySnapshot.docs.first;
-          final role = userDoc['role'];
-
-          if (role == 'worker') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Logged in successfully')),
-            );
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('You are not authorized to login as a worker')),
-            );
-            await _auth.signOut();
-          }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Worker data not found in Firestore')),
-          );
-          await _auth.signOut();
-        }
-      } catch (e) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed: $e')),
+          SnackBar(content: Text(viewModel.errorMessage ?? 'Login failed')),
         );
       }
     }

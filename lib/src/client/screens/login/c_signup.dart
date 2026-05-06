@@ -1,8 +1,7 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:login_1/src/client/features/auth/viewmodels/client_auth_viewmodel.dart';
 import 'c_login.dart';
 
 class CSignUpForm extends StatefulWidget {
@@ -13,9 +12,6 @@ class CSignUpForm extends StatefulWidget {
 }
 
 class _SignUpFormState extends State<CSignUpForm> {
-  final _auth = FirebaseAuth.instance;
-  final _firestore = FirebaseFirestore.instance;
-
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -33,67 +29,30 @@ class _SignUpFormState extends State<CSignUpForm> {
     super.dispose();
   }
 
-  Future<String> _generateUniqueClientId(String name) async {
-    final random = Random();
-    String idPrefix = name.trim().toUpperCase().substring(0, min(3, name.length));
-    String clientId = '';
-    bool exists = true;
-
-    while (exists) {
-      String randomDigits = (10 + random.nextInt(90)).toString(); // 2-digit number
-      clientId = idPrefix + randomDigits;
-
-      final doc = await _firestore.collection('client').doc(clientId).get();
-      exists = doc.exists;
-    }
-
-    return clientId;
-  }
-
-  void _signup() async {
+  void _signup(BuildContext context) async {
     if (_formKey.currentState!.validate()) {
-      final email = _emailController.text;
-      final password = _passwordController.text;
-      final confirmPassword = _confirmPasswordController.text;
-      final name = _nameController.text.trim();
+      final viewModel = Provider.of<ClientAuthViewModel>(context, listen: false);
 
-      if (password == confirmPassword) {
-        try {
-          final userCredential = await _auth.createUserWithEmailAndPassword(
-            email: email,
-            password: password,
-          );
+      final success = await viewModel.signup(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        phone: _phoneController.text.trim(),
+      );
 
-          if (userCredential.user != null) {
-            String clientId = await _generateUniqueClientId(name);
+      if (!mounted) return;
 
-            await _firestore.collection('client').doc(clientId).set({
-              'name': name,
-              'email': email,
-              'phone': _phoneController.text,
-              'role': 'client',
-              'clientId': clientId,
-              'uid': userCredential.user!.uid,
-              'createdAt': FieldValue.serverTimestamp(),
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Client created. ID: $clientId')),
-            );
-
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const CLogin()),
-            );
-          }
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('User creation failed: $e')),
-          );
-        }
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Client created successfully')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CLogin()),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passwords do not match')),
+          SnackBar(content: Text(viewModel.errorMessage ?? 'Sign up failed')),
         );
       }
     }
@@ -123,18 +82,25 @@ class _SignUpFormState extends State<CSignUpForm> {
               _buildTextField('Confirm Password', _confirmPasswordController, obscureText: true),
               const SizedBox(height: 40),
               Center(
-                child: ElevatedButton(
-                  onPressed: _signup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                    textStyle: const TextStyle(fontSize: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                  ),
-                  child: const Text('Sign Up'),
+                child: Consumer<ClientAuthViewModel>(
+                  builder: (context, viewModel, child) {
+                    if (viewModel.isLoading) {
+                      return const CircularProgressIndicator();
+                    }
+                    return ElevatedButton(
+                      onPressed: () => _signup(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                        textStyle: const TextStyle(fontSize: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                      ),
+                      child: const Text('Sign Up'),
+                    );
+                  },
                 ),
               ),
             ],
