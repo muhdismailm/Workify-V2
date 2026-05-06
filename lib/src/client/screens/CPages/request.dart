@@ -106,11 +106,11 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Text('Skill: \${request['workerSkill'] ?? 'Unknown Skill'}'),
-                      Text('Client: \${request['clientName'] ?? 'Unknown Client'}'),
-                      Text('Worker Contact: \${request['workerPhone'] ?? 'Unknown Phone'}'),
+                      Text("Skill: ${request['workerSkill'] ?? 'Unknown Skill'}"),
+                      Text("Client: ${request['clientName'] ?? 'Unknown Client'}"),
+                      Text("Worker Contact: ${request['workerPhone'] ?? 'Unknown Phone'}"),
                       Text(
-                        'Status: \${request['status']}',
+                        "Status: ${request['status']}",
                         style: TextStyle(
                           color: request['status'] == 'Accepted' ? Colors.green : Colors.orange,
                           fontWeight: FontWeight.bold,

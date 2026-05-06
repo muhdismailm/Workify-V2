@@ -14,6 +14,10 @@ import 'package:login_1/src/worker/features/requests/viewmodels/worker_requests_
 import 'package:login_1/src/worker/features/profile/viewmodels/worker_profile_viewmodel.dart';
 import 'package:login_1/src/client/screens/login/c_login.dart';
 import 'package:login_1/src/worker/features/screens/login/w_login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:login_1/src/client/screens/CPages/c_homescreen.dart';
+import 'package:login_1/src/worker/features/screens/pages/HomeScreen.dart';
 
 
 void main() async {
@@ -72,7 +76,7 @@ class App extends StatelessWidget {
       darkTheme: ThemeData.dark(),
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
-      home: const WelcomeScreen(),
+      home: const AuthGate(),
     );
   }
 }
@@ -179,5 +183,76 @@ class AppHome extends StatelessWidget {
        
       ),
     );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // If the connection is waiting, show a loading indicator
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // If there is a logged-in user, check their role
+        if (snapshot.hasData && snapshot.data != null) {
+          return FutureBuilder<Widget>(
+            future: _checkUserRoleAndRedirect(snapshot.data!.uid),
+            builder: (context, roleSnapshot) {
+              if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (roleSnapshot.hasError || !roleSnapshot.hasData) {
+                // In case of error or no data, sign out and show Welcome
+                FirebaseAuth.instance.signOut();
+                return const WelcomeScreen();
+              }
+              return roleSnapshot.data!;
+            },
+          );
+        }
+
+        // If user is not logged in, show Welcome Screen
+        return const WelcomeScreen();
+      },
+    );
+  }
+
+  Future<Widget> _checkUserRoleAndRedirect(String uid) async {
+    final firestore = FirebaseFirestore.instance;
+
+    // Check if the user is a client
+    final clientSnapshot = await firestore
+        .collection('client')
+        .where('uid', isEqualTo: uid)
+        .limit(1)
+        .get();
+
+    if (clientSnapshot.docs.isNotEmpty) {
+      return const ClientHomePage();
+    }
+
+    // Check if the user is a worker
+    final workerSnapshot = await firestore
+        .collection('worker')
+        .where('authUid', isEqualTo: uid)
+        .limit(1)
+        .get();
+
+    if (workerSnapshot.docs.isNotEmpty) {
+      return const HomePage();
+    }
+
+    // If neither, return to Welcome Screen
+    return const WelcomeScreen();
   }
 }

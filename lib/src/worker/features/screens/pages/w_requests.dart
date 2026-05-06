@@ -93,11 +93,11 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Skill: \${request['workerSkill'] ?? 'Unknown Skill'}'),
-                      Text('Contact: \${request['clientPhone'] ?? 'Unknown Phone'}'),
-                      Text('Timestamp: \${request['timestamp'] ?? 'Unknown Time'}'),
+                      Text("Skill: ${request['workerSkill'] ?? 'Unknown Skill'}"),
+                      Text("Contact: ${request['clientPhone'] ?? 'Unknown Phone'}"),
+                      Text("Timestamp: ${request['timestamp'] ?? 'Unknown Time'}"),
                       Text(
-                        'Status: \${request['status']}',
+                        "Status: ${request['status']}",
                         style: TextStyle(
                           color: request['status'] == 'Accepted'
                               ? Colors.green
@@ -152,16 +152,16 @@ class _WorkerRequestsPageState extends State<WorkerRequestsPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Client Details: \${request['clientName']}'),
+          title: Text("Client Details: ${request['clientName']}"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Skill: \${request['workerSkill']}'),
+              Text("Skill: ${request['workerSkill']}"),
               const SizedBox(height: 8),
-              Text('Contact: \${request['clientPhone']}'),
+              Text("Contact: ${request['clientPhone']}"),
               const SizedBox(height: 8),
-              Text('Timestamp: \${request['timestamp']}'),
+              Text("Timestamp: ${request['timestamp']}"),
             ],
           ),
           actions: [
