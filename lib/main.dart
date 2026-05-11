@@ -1,4 +1,3 @@
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,7 +18,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:login_1/src/client/screens/CPages/c_homescreen.dart';
 import 'package:login_1/src/worker/features/screens/pages/HomeScreen.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -33,32 +31,45 @@ void main() async {
           update: (context, auth, previous) => ClientAuthViewModel(auth),
         ),
         ChangeNotifierProxyProvider<DatabaseService, ClientHomeViewModel>(
-          create: (context) => ClientHomeViewModel(context.read<DatabaseService>()),
-          update: (context, db, previous) => previous ?? ClientHomeViewModel(db),
+          create: (context) =>
+              ClientHomeViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) =>
+              previous ?? ClientHomeViewModel(db),
         ),
         ChangeNotifierProxyProvider<DatabaseService, ClientRequestsViewModel>(
-          create: (context) => ClientRequestsViewModel(context.read<DatabaseService>()),
-          update: (context, db, previous) => previous ?? ClientRequestsViewModel(db),
+          create: (context) =>
+              ClientRequestsViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) =>
+              previous ?? ClientRequestsViewModel(db),
         ),
         ChangeNotifierProxyProvider<DatabaseService, ClientProfileViewModel>(
-          create: (context) => ClientProfileViewModel(context.read<DatabaseService>()),
-          update: (context, db, previous) => previous ?? ClientProfileViewModel(db),
+          create: (context) =>
+              ClientProfileViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) =>
+              previous ?? ClientProfileViewModel(db),
         ),
         ChangeNotifierProxyProvider<AuthService, WorkerAuthViewModel>(
           create: (context) => WorkerAuthViewModel(context.read<AuthService>()),
-          update: (context, auth, previous) => previous ?? WorkerAuthViewModel(auth),
+          update: (context, auth, previous) =>
+              previous ?? WorkerAuthViewModel(auth),
         ),
         ChangeNotifierProxyProvider<DatabaseService, WorkerHomeViewModel>(
-          create: (context) => WorkerHomeViewModel(context.read<DatabaseService>()),
-          update: (context, db, previous) => previous ?? WorkerHomeViewModel(db),
+          create: (context) =>
+              WorkerHomeViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) =>
+              previous ?? WorkerHomeViewModel(db),
         ),
         ChangeNotifierProxyProvider<DatabaseService, WorkerRequestsViewModel>(
-          create: (context) => WorkerRequestsViewModel(context.read<DatabaseService>()),
-          update: (context, db, previous) => previous ?? WorkerRequestsViewModel(db),
+          create: (context) =>
+              WorkerRequestsViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) =>
+              previous ?? WorkerRequestsViewModel(db),
         ),
         ChangeNotifierProxyProvider<DatabaseService, WorkerProfileViewModel>(
-          create: (context) => WorkerProfileViewModel(context.read<DatabaseService>()),
-          update: (context, db, previous) => previous ?? WorkerProfileViewModel(db),
+          create: (context) =>
+              WorkerProfileViewModel(context.read<DatabaseService>()),
+          update: (context, db, previous) =>
+              previous ?? WorkerProfileViewModel(db),
         ),
       ],
       child: const App(),
@@ -73,9 +84,20 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Workify',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: ThemeMode.system,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF5F8FF),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.black),
+          bodyMedium: TextStyle(color: Colors.black),
+          titleMedium: TextStyle(color: Colors.black), // TextField text
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          labelStyle: TextStyle(color: Colors.black87),
+          hintStyle: TextStyle(color: Colors.black54),
+        ),
+      ),
+      themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       home: const AuthGate(),
     );
@@ -109,7 +131,8 @@ class WelcomeScreen extends StatelessWidget {
                     color: Colors.white.withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.work_rounded, size: 64, color: Colors.white),
+                  child: const Icon(Icons.work_rounded,
+                      size: 64, color: Colors.white),
                 ),
                 const SizedBox(height: 24),
                 const Text(
@@ -133,7 +156,8 @@ class WelcomeScreen extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Continue as',
-                    style: TextStyle(color: Colors.white60, fontSize: 13, letterSpacing: 1),
+                    style: TextStyle(
+                        color: Colors.white60, fontSize: 13, letterSpacing: 1),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -143,13 +167,17 @@ class WelcomeScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CLogin())),
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const CLogin())),
                     icon: const Icon(Icons.person_outline),
-                    label: const Text('Client', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    label: const Text('Client',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF1565C0),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
                   ),
@@ -161,13 +189,17 @@ class WelcomeScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WLogin())),
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const WLogin())),
                     icon: const Icon(Icons.engineering_rounded),
-                    label: const Text('Worker', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    label: const Text('Worker',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFFA000),
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
                   ),
@@ -189,7 +221,7 @@ class AppHome extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blue, 
+        backgroundColor: Colors.blue,
         title: const Text(
           "workify",
           style: TextStyle(
@@ -201,7 +233,6 @@ class AppHome extends StatelessWidget {
       ),
       body: const Padding(
         padding: EdgeInsets.all(20.0),
-       
       ),
     );
   }

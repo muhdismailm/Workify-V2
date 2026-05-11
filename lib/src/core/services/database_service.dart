@@ -49,6 +49,17 @@ class DatabaseService {
     String clientContact = user.email ?? 'Unknown Contact';
     String workerPhone = workerData['phone'] ?? 'Unknown Phone';
 
+    // Check if a request already exists to this worker
+    final snapshot = await _realtimeDb.ref('requests').get();
+    if (snapshot.exists) {
+      final data = snapshot.value as Map<dynamic, dynamic>;
+      for (var request in data.values) {
+        if (request['clientContact'] == clientContact && request['workerPhone'] == workerPhone) {
+          throw Exception("u arer requesting morethan once");
+        }
+      }
+    }
+
     DatabaseReference requestRef = _realtimeDb.ref('requests').push();
     await requestRef.set({
       'workerName': workerData['name'],
@@ -74,10 +85,19 @@ class DatabaseService {
     await _realtimeDb.ref('requests/$requestKey').update({'status': 'Accepted'});
   }
 
-  Future<void> rateWorker(String requestKey, String workerName, int rating) async {
+  Future<void> rateWorker({
+    required String requestKey,
+    required String workerName,
+    required int rating,
+    required String review,
+    required String clientName,
+  }) async {
     await _realtimeDb.ref('ratings/$requestKey').set({
       'workerName': workerName,
+      'clientName': clientName,
       'rating': rating,
+      'review': review,
+      'timestamp': ServerValue.timestamp,
     });
   }
 
@@ -203,11 +223,50 @@ class DatabaseService {
     }
   }
 
+  Future<void> updateWorkerAvailability(bool isAvailable) async {
+    User? user = _auth.currentUser;
+    if (user == null) throw Exception("User not logged in");
+
+    final qs = await _firestore
+        .collection('worker')
+        .where('authUid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+
+    if (qs.docs.isNotEmpty) {
+      await qs.docs.first.reference.update({
+        'isAvailable': isAvailable,
+      });
+    }
+  }
+
   Stream<DatabaseEvent> getRTDBRatingsStream() {
     return _realtimeDb.ref('ratings').onValue;
   }
 
   Stream<QuerySnapshot> getFirestoreRatingsStream() {
     return _firestore.collection('ratings').snapshots();
+  }
+
+  // --- Chat ---
+  Stream<DatabaseEvent> getChatMessages(String requestKey) {
+    return _realtimeDb.ref('chats/$requestKey').orderByChild('timestamp').onValue;
+  }
+
+  Future<void> sendMessage({
+    required String requestKey,
+    required String text,
+    required String senderId,
+    required String senderName,
+    required String senderRole,
+  }) async {
+    DatabaseReference chatRef = _realtimeDb.ref('chats/$requestKey').push();
+    await chatRef.set({
+      'text': text,
+      'senderId': senderId,
+      'senderName': senderName,
+      'senderRole': senderRole,
+      'timestamp': ServerValue.timestamp,
+    });
   }
 }

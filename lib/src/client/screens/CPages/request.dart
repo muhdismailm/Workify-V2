@@ -3,6 +3,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:provider/provider.dart';
 import 'package:login_1/src/client/features/requests/viewmodels/client_requests_viewmodel.dart';
 import 'package:login_1/src/client/screens/CPages/c_homescreen.dart';
+import 'package:login_1/src/core/screens/chat_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:login_1/src/core/services/database_service.dart';
 
 // ── Theme colours (same blue palette as the rest of the client app) ───────────
 const Color _kPrimary = Color(0xFF2196F3);
@@ -109,16 +112,37 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
                           viewModel,
                         ),
                         onReject: () async {
-                          final success = await viewModel
-                              .rejectRequest(requestList[index]['key']);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(success
-                                    ? 'Request cancelled.'
-                                    : 'Error cancelling request.'),
-                              ),
-                            );
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Cancel Request'),
+                              content: const Text('ARE YOU SURE TO DELETE?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(false),
+                                  child: const Text('No'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.of(ctx).pop(true),
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                  child: const Text('Yes', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
+                          
+                          if (confirm == true) {
+                            final success = await viewModel
+                                .rejectRequest(requestList[index]['key']);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(success
+                                      ? 'Request cancelled.'
+                                      : 'Error cancelling request.'),
+                                ),
+                              );
+                            }
                           }
                         },
                       ),
@@ -241,74 +265,130 @@ class _BookedServicesPageState extends State<BookedServicesPage> {
 
   void _showRatingDialog(BuildContext context, String workerName,
       String requestKey, ClientRequestsViewModel viewModel) {
-    int? selectedRating;
+    int selectedRating = 0;
+    bool isSubmitting = false;
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return StatefulBuilder(builder: (context, setState) {
-          return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: Text('Rate $workerName'),
-            content: Column(
+        return StatefulBuilder(builder: (context, setModalState) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              top: 20,
+              left: 20,
+              right: 20,
+            ),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+            ),
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Please select a rating:'),
-                const SizedBox(height: 10),
-                // Star row
+                // Handle
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                Text(
+                  'Rate your experience',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'How was your service with $workerName?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                
+                // Star Rating
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (i) {
-                    final star = i + 1;
+                  children: List.generate(5, (index) {
+                    int starValue = index + 1;
                     return GestureDetector(
-                      onTap: () => setState(() => selectedRating = star),
+                      onTap: () => setModalState(() => selectedRating = starValue),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Icon(
-                          selectedRating != null && selectedRating! >= star
-                              ? Icons.star
-                              : Icons.star_border,
-                          color: Colors.amber,
-                          size: 36,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: AnimatedScale(
+                          scale: selectedRating == starValue ? 1.2 : 1.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Icon(
+                            selectedRating >= starValue ? Icons.star : Icons.star_border,
+                            color: Colors.orange.shade600,
+                            size: 52,
+                          ),
                         ),
                       ),
                     );
                   }),
                 ),
+                const SizedBox(height: 12),
+                
+                // Submit Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    onPressed: (selectedRating == 0 || isSubmitting)
+                        ? null
+                        : () async {
+                            setModalState(() => isSubmitting = true);
+                            try {
+                              final db = context.read<DatabaseService>();
+                              final clientName = await db.getClientName();
+                              
+                              final success = await viewModel.submitRating(
+                                requestKey: requestKey,
+                                workerName: workerName,
+                                rating: selectedRating,
+                                review: '',
+                                clientName: clientName,
+                              );
+                              
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(success ? 'Thank you for your feedback!' : 'Failed to submit rating.'),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: success ? Colors.green.shade600 : Colors.red.shade600,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                );
+                              }
+                            } finally {
+                              if (context.mounted) setModalState(() => isSubmitting = false);
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _kPrimary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: isSubmitting
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Submit Rating', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 10),
               ],
             ),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel')),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: _kPrimary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10))),
-                onPressed: () async {
-                  if (selectedRating == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content:
-                            Text('Please select a rating before submitting.')));
-                    return;
-                  }
-                  Navigator.of(context).pop();
-                  final success = await viewModel.submitRating(
-                      requestKey, workerName, selectedRating!);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(success
-                          ? 'Rating submitted successfully!'
-                          : 'Failed to submit rating.'),
-                    ));
-                  }
-                },
-                child: const Text('Submit'),
-              ),
-            ],
           );
         });
       },
@@ -530,25 +610,61 @@ class _BookingCard extends StatelessWidget {
             ),
           ),
 
-          // ── Rate button (only when accepted) ─────────────────────────────
+          // ── Action buttons (only when accepted) ─────────────────────────────
           if (status == 'Accepted')
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-              child: SizedBox(
-                width: double.infinity,
-                height: 42,
-                child: ElevatedButton.icon(
-                  onPressed: onRate,
-                  icon: const Icon(Icons.star_outline, size: 18),
-                  label: const Text('Rate this Worker'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _kPrimary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    height: 42,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        final user = FirebaseAuth.instance.currentUser;
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(
+                              requestKey: request['key'],
+                              currentUserId: user?.uid ?? 'unknown',
+                              currentUserName: request['clientName'] ?? user?.displayName ?? 'Client',
+                              currentUserRole: 'client',
+                              otherParticipantName: workerName,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                      label: const Text('Chat with Vendor'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: _kPrimary,
+                        side: const BorderSide(color: _kPrimary),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 42,
+                    child: ElevatedButton.icon(
+                      onPressed: onRate,
+                      icon: const Icon(Icons.star_outline, size: 18),
+                      label: const Text('Rate this Worker'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _kPrimary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
         ],

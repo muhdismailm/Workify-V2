@@ -5,6 +5,8 @@ import 'package:login_1/src/worker/features/requests/viewmodels/worker_requests_
 import 'package:login_1/src/worker/features/screens/pages/HomeScreen.dart';
 import 'package:login_1/src/worker/features/screens/pages/w_navigation.dart';
 import 'package:login_1/src/core/widgets/success_page.dart';
+import 'package:login_1/src/core/screens/chat_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // ── Amber worker theme colours ────────────────────────────────────────────────
 const Color _kPrimary = Color(0xFFFFA000);
@@ -451,6 +453,42 @@ class _RequestCard extends StatelessWidget {
                 ],
               ),
             ),
+            
+          // ── Action buttons (Accepted only) ────────────────────────────────
+          if (status == 'Accepted')
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+              child: SizedBox(
+                width: double.infinity,
+                height: 42,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final user = FirebaseAuth.instance.currentUser;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatScreen(
+                          requestKey: request['key'],
+                          currentUserId: user?.uid ?? 'unknown',
+                          currentUserName: request['workerName'] ?? user?.displayName ?? 'Worker',
+                          currentUserRole: 'worker',
+                          otherParticipantName: clientName,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                  label: const Text('Chat with Client'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -471,10 +509,16 @@ class _RequestCard extends StatelessWidget {
             primaryIcon: Icons.chat_bubble_outline,
             primaryColor: _kPrimary,
             onPrimary: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Chat feature coming soon!'),
-                  behavior: SnackBarBehavior.floating,
+              final user = FirebaseAuth.instance.currentUser;
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => ChatScreen(
+                    requestKey: request['key'],
+                    currentUserId: user?.uid ?? 'unknown',
+                    currentUserName: request['workerName'] ?? user?.displayName ?? 'Worker',
+                    currentUserRole: 'worker',
+                    otherParticipantName: request['clientName'] ?? 'Client',
+                  ),
                 ),
               );
             },
@@ -498,13 +542,35 @@ class _RequestCard extends StatelessWidget {
   }
 
   Future<void> _handleReject(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final success = await viewModel.rejectRequest(request['key']);
-    messenger.showSnackBar(SnackBar(
-      content: Text(success ? 'Request rejected.' : 'Failed to reject.'),
-      behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-    ));
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Reject Request'),
+        content: const Text('ARE YOU SURE TO DELETE?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('No'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Yes', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    
+    if (confirm == true) {
+      if (!context.mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final success = await viewModel.rejectRequest(request['key']);
+      messenger.showSnackBar(SnackBar(
+        content: Text(success ? 'Request rejected.' : 'Failed to reject.'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
   }
 }
 

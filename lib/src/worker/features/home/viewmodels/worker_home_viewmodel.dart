@@ -16,12 +16,50 @@ class WorkerHomeViewModel extends ChangeNotifier {
   String? _workerSkill;
   String? get workerSkill => _workerSkill;
 
+  bool _isAvailable = false;
+  bool get isAvailable => _isAvailable;
+
   Future<void> _init() async {
     final profile = await _dbService.getWorkerProfile();
     if (profile != null) {
       _workerName = profile['name']?.toString();
       _workerSkill = profile['skill']?.toString();
+      _isAvailable = profile['isAvailable'] as bool? ?? false;
       notifyListeners();
+    }
+  }
+
+  Future<void> toggleAvailability(bool value) async {
+    _isAvailable = value;
+    notifyListeners();
+    try {
+      await _dbService.updateWorkerAvailability(value);
+    } catch (e) {
+      // Revert on error
+      _isAvailable = !value;
+      notifyListeners();
+    }
+  }
+
+  Stream<DatabaseEvent> getRequestsStream() {
+    return _dbService.getRequestsStream();
+  }
+
+  Future<bool> acceptRequest(String requestKey) async {
+    try {
+      await _dbService.acceptRequest(requestKey);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> rejectRequest(String requestKey) async {
+    try {
+      await _dbService.rejectRequest(requestKey);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 

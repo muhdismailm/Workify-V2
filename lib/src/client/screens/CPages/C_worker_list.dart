@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:login_1/src/client/features/home/viewmodels/client_home_viewmodel.dart';
 import 'package:login_1/src/core/widgets/success_page.dart';
 import 'package:login_1/src/client/screens/CPages/c_homescreen.dart';
+import 'package:login_1/src/client/screens/CPages/request.dart';
 
 class WorkerList extends StatelessWidget {
   const WorkerList({super.key});
@@ -103,7 +104,7 @@ class WorkerList extends StatelessWidget {
       BuildContext context, Map<String, dynamic> workerData, ClientHomeViewModel viewModel) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: Text(workerData['name'] ?? 'Worker Details'),
           content: Column(
@@ -123,22 +124,22 @@ class WorkerList extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
-                final nav       = Navigator.of(context);
+                final nav       = Navigator.of(dialogContext);
                 final messenger = ScaffoldMessenger.of(context);
                 nav.pop(); // close dialog
-                final success = await viewModel.sendRequest(workerData);
+                final errorMsg = await viewModel.sendRequest(workerData);
                 if (context.mounted) {
-                  if (success) {
+                  if (errorMsg == null) {
                     _showBookingSuccess(context);
                   } else {
                     messenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('Failed to send request. Please try again.'),
+                      SnackBar(
+                        content: Text(errorMsg),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -162,16 +163,13 @@ class WorkerList extends StatelessWidget {
       MaterialPageRoute(
         builder: (_) => SuccessPage(
           title: 'Your Booking is\nSuccessfully Placed!',
-          primaryLabel: 'Chat with Vendor',
-          primaryIcon: Icons.chat_bubble_outline,
+          primaryLabel: 'View Bookings',
+          primaryIcon: Icons.calendar_today_outlined,
           primaryColor: const Color(0xFF2196F3),
           onPrimary: () {
-            // TODO: open chat screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Chat feature coming soon!'),
-                behavior: SnackBarBehavior.floating,
-              ),
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const BookedServicesPage()),
+              (route) => false,
             );
           },
           onHome: () {

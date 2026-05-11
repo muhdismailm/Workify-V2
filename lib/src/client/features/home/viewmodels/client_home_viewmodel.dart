@@ -49,13 +49,16 @@ class ClientHomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> sendRequest(Map<String, dynamic> workerData) async {
+  Future<String?> sendRequest(Map<String, dynamic> workerData) async {
     try {
       await _dbService.sendRequestToWorker(workerData);
-      return true;
+      return null;
     } catch (e) {
       print('Error sending request: \$e');
-      return false;
+      if (e.toString().contains("u arer requesting morethan once")) {
+        return "u arer requesting morethan once";
+      }
+      return "Failed to send request. Please try again.";
     }
   }
 }

@@ -16,17 +16,29 @@ class ClientRequestsViewModel extends ChangeNotifier {
       await _dbService.rejectRequest(requestKey);
       return true;
     } catch (e) {
-      print('Error rejecting request: \$e');
+      print('Error rejecting request: $e');
       return false;
     }
   }
 
-  Future<bool> submitRating(String requestKey, String workerName, int rating) async {
+  Future<bool> submitRating({
+    required String requestKey,
+    required String workerName,
+    required int rating,
+    required String review,
+    required String clientName,
+  }) async {
     try {
-      await _dbService.rateWorker(requestKey, workerName, rating);
+      await _dbService.rateWorker(
+        requestKey: requestKey,
+        workerName: workerName,
+        rating: rating,
+        review: review,
+        clientName: clientName,
+      );
       return true;
     } catch (e) {
-      print('Error submitting rating: \$e');
+      print('Error submitting rating: $e');
       return false;
     }
   }
